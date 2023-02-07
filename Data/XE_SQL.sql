@@ -1,0 +1,103 @@
+CREATE DATABASE XE
+USE XE
+
+CREATE TABLE CHUXE (
+	MaChuXe char(20) NOT NULL PRIMARY KEY,
+	TenChuXe nvarchar(50) NOT NULL,
+	SoCMT char(12) NOT NULL UNIQUE, --the can cuoc co 12 so
+	DiaChi nvarchar(100) NOT NULL,
+	DienThoai char(10) UNIQUE
+)
+
+CREATE TABLE TUYEN (
+	MaSoTuyen char(20) NOT NULL PRIMARY KEY,
+	DiaDiem1 nvarchar(100) NOT NULL,
+	DiaDiem2 nvarchar(100) NOT NULL,
+	DoDai varchar(10)
+)
+
+CREATE TABLE VE (
+	MaSoVe char(20) NOT NULL PRIMARY KEY,
+	--MaSoXe char(20) NOT NULL,
+	SoGhe int
+)
+
+CREATE TABLE XEOTO(
+	MaSoXe char(20) NOT NULL PRIMARY KEY,
+	BienSo char(20) NOT NULL UNIQUE,
+	SoGhe int NOT NULL,
+	MaChuXe char(20) NOT NULL,
+	MaSoTuyen char(20) NOT NULL
+)
+
+CREATE TABLE NHANVIEN(
+	MaNhanVien char(20) NOT NULL PRIMARY KEY,
+	TenNhanVien	nvarchar(50) NOT NULL,
+	GioiTinh nvarchar(3),
+	NgaySinh date,
+	DiaChi nvarchar(100) NOT NULL,
+	SoDienThoai char(10) UNIQUE,
+)
+
+CREATE TABLE HOADONBANVE(
+	MaHDB char(20) NOT NULL PRIMARY KEY,
+	MaSoXe char(20) NOT NULL,
+	MaKhach char(20) NOT NULL,
+	MaNhanVien char(20) NOT NULL,
+	MaSoVe char(20) NOT NULL,
+	SoLuong int NOT NULL,
+	NgayLap date NOT NULL,
+	DonGia int,
+)
+
+--Khoa ngoai
+ALTER TABLE XEOTO
+ADD CONSTRAINT FK_XEOTO_CHUXE 
+FOREIGN KEY(MaChuXe) REFERENCES CHUXE(MaChuXe)
+
+ALTER TABLE XEOTO
+ADD CONSTRAINT FK_XEOTO_TUYEN
+FOREIGN KEY(MaSoTuyen) REFERENCES TUYEN(MaSoTuyen)
+
+ALTER TABLE HOADONBANVE
+ADD CONSTRAINT FK_HDBV_VE
+FOREIGN KEY(MaSoVe) REFERENCES VE(MaSoVe)
+
+ALTER TABLE HOADONBANVE
+ADD CONSTRAINT FK_HDBV_XEOTO
+FOREIGN KEY(MaSoXe) REFERENCES XEOTO(MaSoXe)
+
+ALTER TABLE HOADONBANVE
+ADD CONSTRAINT FK_HDBV_NHANVIEN
+FOREIGN KEY(MaNhanVien) REFERENCES NHANVIEN(MaNhanVien)
+
+SELECT * FROM CHUXE
+SELECT * FROM HOADONBANVE
+SELECT * FROM VE
+SELECT * FROM NHANVIEN
+SELECT * FROM XEOTO
+SELECT * FROM TUYEN
+SELECT * FROM ACCOUNT
+
+CREATE PROCEDURE sp_TKTicket
+(@NgayLap1 varchar(50),
+@NgayLap2 varchar(50))
+AS
+BEGIN
+SELECT MaHDB, A.MaNhanVien, TenNhanVien, MaSoVe, SoLuong, NgayLap, DonGia
+FROM HOADONBANVE as A, NHANVIEN as B
+WHERE A.MaNhanVien = B.MaNhanVien and (NgayLap between @NgayLap1 and @NgayLap2)
+END;
+
+CREATE PROCEDURE sp_TKCar
+(@DiaDiem1 varchar(30),
+@DiaDiem2 varchar(30))
+AS
+BEGIN
+SELECT MaSoXe, BienSo, SoGhe, B.MaSoTuyen, DiaDiem1, DiaDiem2
+FROM XEOTO as A, TUYEN as B
+WHERE A.MaSoTuyen = B.MaSoTuyen and (DiaDiem1 = @DiaDiem1 and DiaDiem2 = @DiaDiem2)
+END;
+
+EXEC sp_TKTicket '2019-5-19', '2019-6-19';
+EXEC sp_TKCar 'Hue', 'Da Nang';
